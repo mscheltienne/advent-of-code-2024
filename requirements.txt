@@ -1,3 +1,4 @@
 ipykernel
 ipython
+networkx
 numpy>=2,<3
