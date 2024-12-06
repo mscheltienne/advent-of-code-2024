@@ -21,6 +21,7 @@ select = ['A', 'B', 'D', 'E', 'F', 'G', 'I', 'LOG', 'NPY', 'PIE', 'PT', 'T20', '
   'B904',  # 'Within an except clause, raise exceptions with raise ... from ...'
   'D100',  # 'Missing docstring in public module'
   'D104',  # 'Missing docstring in public package'
+  'T201',  # 'print found'
 ]
 
 [tool.ruff.lint.pydocstyle]

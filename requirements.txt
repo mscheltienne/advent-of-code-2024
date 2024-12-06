@@ -1,1 +1,3 @@
+ipykernel
+ipython
 numpy>=2,<3
