@@ -1,16 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from numpy.typing import NDArray
 
-fname: str | Path = "input.txt"
-data = np.loadtxt(fname, dtype=np.int32)  # shape of (1000, 2)
+fname: Path = Path(__file__).parent / "input.txt"
+data: NDArray[np.int32] = np.loadtxt(fname, dtype=np.int32)  # shape of (1000, 2)
 
 
 # %% part 1
