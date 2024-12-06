@@ -27,10 +27,10 @@ for X, Y in rules:
 # %% part 1
 def is_valid(update: list[int], G_ruleset: nx.DiGraph) -> bool:
     """Check if an update is valid."""
-    subG = G_ruleset.subgraph(update)
+    G_sub = G_ruleset.subgraph(update)
     position = {page: i for i, page in enumerate(update)}
     # check all edges in the subgraph
-    for X, Y in subG.edges():
+    for X, Y in G_sub.edges():
         # if X must come before Y, but X's position is not before Y's, it's invalid
         if position[Y] <= position[X]:
             return False
