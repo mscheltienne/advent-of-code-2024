@@ -70,8 +70,8 @@ def reorder_updates(
     """Reorder the update using the ruleset."""
     valid_updates = []
     for update in updates:
-        subG = G_ruleset.subgraph(update)
-        valid_updates.append(np.array(list(nx.topological_sort(subG)), dtype=np.int8))
+        G_sub = G_ruleset.subgraph(update)
+        valid_updates.append(np.array(list(nx.topological_sort(G_sub)), dtype=np.int8))
     return [update.tolist() for update in valid_updates]  # cast back to list
 
 
