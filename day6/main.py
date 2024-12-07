@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-fname: Path = Path(__file__).parent / "example.txt"
+fname: Path = Path(__file__).parent / "input.txt"
 char_to_num: dict[str, int] = {".": 0, "#": 1, "^": 2, ">": 3, "v": 4, "<": 5}
 with open(fname) as fid:
     data: list[list[int]] = [
@@ -37,7 +37,7 @@ _MOVEMENTS: dict[int, tuple[int, int]] = {
 }
 
 
-def walk_path(
+def walk_normal_path(
     data: NDArray[np.bool], x: int, y: int, orientation: int
 ) -> set[tuple[int, int]]:
     """Walk the guard pattern and list the positions visited."""
@@ -59,25 +59,18 @@ def walk_path(
     return positions
 
 
-positions = walk_path(data, x, y, orientation)
+positions = walk_normal_path(data, x, y, orientation)
 print(f"The guard walked on {len(positions)} positions.")
 
 
 # %% part 2
 @dataclass(frozen=True)
 class Node:
-    """A node representing the guard position/orientation and the map state."""
+    """A node representing the guard position/orientation."""
 
     x: int
     y: int
     orientation: int
-    x_obstacle: int | None
-    y_obstacle: int | None
-
-
-def turn_right(orientation: int) -> int:
-    """Turn the guard to the right."""
-    return {2: 3, 3: 4, 4: 5, 5: 2}[orientation]
 
 
 def in_bounds(data: NDArray[np.bool_], x: int, y: int) -> bool:
@@ -86,84 +79,52 @@ def in_bounds(data: NDArray[np.bool_], x: int, y: int) -> bool:
     return 0 <= x < rows and 0 <= y < cols
 
 
-def can_turn_right(data: NDArray[np.bool], x: int, y: int, orientation: int) -> bool:
-    """Check if the guard can turn right."""
-    dx, dy = _MOVEMENTS[turn_right(orientation)]
-    nextx, nexty = x + dx, y + dy
-    if not in_bounds(data, nextx, nexty):
-        return False
-    return not data[nextx, nexty]
+def turn_right(orientation: int) -> int:
+    """Turn the guard to the right."""
+    return {2: 3, 3: 4, 4: 5, 5: 2}[orientation]
 
 
-def walk_path(
-    G: nx.DiGraph,
-    data: NDArray[np.bool],
-    x: int,
-    y: int,
-    orientation: int,
-    x_obstacle: int,
-    y_obstacle: int,
-) -> None:
+def walk_path(data: NDArray[np.bool], node: Node) -> nx.DiGraph:
     """Walk down a path and add the corresponding nodes to the graph."""
-    for _ in range(2):  # find the next position
-        dx, dy = _MOVEMENTS[orientation]
-        nextx, nexty = x + dx, y + dy
-        if not in_bounds(data, nextx, nexty):
-            return
-        if data[nextx, nexty]:  # obstacle in the next location
-            new_orientation = turn_right(orientation)
-            G.add_edge(
-                Node(x, y, orientation, x_obstacle, y_obstacle),
-                Node(x, y, new_orientation, x_obstacle, y_obstacle),
-            )
-            orientation = new_orientation
-            continue
-        break
-    next_node = Node(nextx, nexty, orientation, x_obstacle, y_obstacle)
-    if next_node not in G:
-        G.add_edge(Node(x, y, orientation, x_obstacle, y_obstacle), next_node)
-        walk_path(G, data, nextx, nexty, orientation, x_obstacle, y_obstacle)
-
-
-def build_graph(data: NDArray[np.bool], x: int, y: int, orientation: int) -> nx.DiGraph:
-    """Create a graph reprensenting the guard pattern.
-
-    Each node represents a (x, y, orientation) tuple.
-    Each edge represents a forward movement of the guard.
-    """
     G = nx.DiGraph()
-    G.add_node(Node(x, y, orientation, None, None))  # starting position
-    # walk down the normal path, and at every step branch out between the normal path
-    # and the one where the guard turns right due to a new obstacle in front of her.
+    G.add_node(node)  # starting position
+    visited = {node}
     while True:
-        dx, dy = _MOVEMENTS[orientation]
-        nextx, nexty = x + dx, y + dy  # next position
+        dx, dy = _MOVEMENTS[node.orientation]
+        nextx, nexty = node.x + dx, node.y + dy
         if not in_bounds(data, nextx, nexty):
             break
-        elif data[nextx, nexty]:
-            new_orientation = turn_right(orientation)
-            G.add_edge(
-                Node(x, y, orientation, None, None),
-                Node(x, y, new_orientation, None, None),
-            )
-            orientation = new_orientation
+        if data[nextx, nexty]:
+            new_orientation = turn_right(node.orientation)
+            new_node = Node(node.x, node.y, new_orientation)
+            G.add_edge(node, new_node)
+            visited.add(new_node)
+            node = new_node
             continue
-        # move forward and add the node (x, y, o) corresponding to the normal path
-        G.add_edge(
-            Node(x, y, orientation, None, None),
-            Node(nextx, nexty, orientation, None, None),
-        )
-        # check if the guard can turn right, in which case let's try to add an obstacle
-        # in front of her to branch out.
-        if can_turn_right(data, x, y, orientation):
-            data[nextx, nexty] = True
-            walk_path(G, data, x, y, orientation, nextx, nexty)
-            data[nextx, nexty] = False
-        x, y = nextx, nexty
+        new_node = Node(nextx, nexty, node.orientation)
+        G.add_edge(node, new_node)
+        if new_node in visited:
+            break
+        visited.add(new_node)
+        node = new_node
     return G
 
 
-G = build_graph(data, x, y, orientation)
-nx.draw(G)
-cycles = nx.simple_cycles(G)
-print(f"The guard walked on {len(list(cycles))} cycles.")
+def search_loops(data: NDArray[np.bool], node_start: Node):
+    """Search for loops when adding one obstacle to the map."""
+    pos = walk_normal_path(data, node_start.x, node_start.y, node_start.orientation)
+    pos.remove((node_start.x, node_start.y))
+    loops = dict()
+    for k, (x, y) in enumerate(pos):
+        print(f"Iteration {k} for position {(x, y)}")
+        data_ = data.copy()
+        data_[x, y] = True
+        G = walk_path(data_, node_start)
+        cycles = list(nx.simple_cycles(G))
+        if cycles:
+            loops[(x, y)] = cycles
+    return loops
+
+
+loops = search_loops(data, Node(x, y, orientation))
+print(f"The number of loops is {len(loops)}.")
