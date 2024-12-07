@@ -1,4 +1,6 @@
 ipykernel
 ipython
+matplotlib
 networkx
 numpy>=2,<3
+pyqt6
