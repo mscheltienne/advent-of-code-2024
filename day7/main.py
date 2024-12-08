@@ -15,8 +15,7 @@ data: list[tuple[int, list[int]]] = [
 # %% part 1
 def is_valid(equation: tuple[int, list[int]]) -> bool:
     """Check if an equation is valid."""
-    result = equation[0]
-    numbers = equation[1]
+    result, numbers = equation
     if len(numbers) == 1:
         return result == numbers[0]
     for ops in product(["+", "*"], repeat=len(numbers) - 1):
@@ -26,6 +25,30 @@ def is_valid(equation: tuple[int, list[int]]) -> bool:
                 value += num
             elif op == "*":
                 value *= num
+        if value == result:
+            return True
+    return False
+
+
+total = sum(equation[0] for equation in data if is_valid(equation))
+print(f"The sum of all valid equation's result is {total}.")
+
+
+# %% part 2
+def is_valid(equation: tuple[int, list[int]]) -> bool:
+    """Check if an equation is valid."""
+    result, numbers = equation
+    if len(numbers) == 1:
+        return result == numbers[0]
+    for ops in product(["+", "*", "|"], repeat=len(numbers) - 1):
+        value = numbers[0]
+        for op, num in zip(ops, numbers[1:]):
+            if op == "+":
+                value += num
+            elif op == "*":
+                value *= num
+            elif op == "|":
+                value = int(str(value) + str(num))
         if value == result:
             return True
     return False
