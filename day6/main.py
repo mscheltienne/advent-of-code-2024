@@ -5,7 +5,6 @@ from itertools import cycle
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import networkx as nx
 import numpy as np
 
 if TYPE_CHECKING:
@@ -66,7 +65,25 @@ print(f"The guard walked on {len(positions)} positions.")
 # %% part 2
 @dataclass(frozen=True)
 class Node:
-    """A node representing the guard position/orientation."""
+    """A node representing the guard position/orientation.
+
+    Parameters
+    ----------
+    x : int
+        The x-coordinate of the guard.
+    y : int
+        The y-coordinate of the guard.
+    orientation : int
+        The orientation of the guard.
+        * 2: facing up
+        * 3: facing right
+        * 4: facing down
+        * 5: facing left
+    """
+
+    # another representation of the guard position and orientation could be his position
+    # on the 2D complex plane. Then, a change of orientation by 90° to the right
+    # corresponds to a rotation (multiplication) by the complex number by 1j.
 
     x: int
     y: int
@@ -84,47 +101,42 @@ def turn_right(orientation: int) -> int:
     return {2: 3, 3: 4, 4: 5, 5: 2}[orientation]
 
 
-def walk_path(data: NDArray[np.bool], node: Node) -> nx.DiGraph:
-    """Walk down a path and add the corresponding nodes to the graph."""
-    G = nx.DiGraph()
-    G.add_node(node)  # starting position
+def walk_path(data: NDArray[np.bool], node: Node) -> bool:
+    """Walk down a path and search for loops."""
     visited = {node}
     while True:
         dx, dy = _MOVEMENTS[node.orientation]
         nextx, nexty = node.x + dx, node.y + dy
         if not in_bounds(data, nextx, nexty):
-            break
+            return False
         if data[nextx, nexty]:
             new_orientation = turn_right(node.orientation)
             new_node = Node(node.x, node.y, new_orientation)
-            G.add_edge(node, new_node)
+            if new_node in visited:
+                return True
             visited.add(new_node)
             node = new_node
             continue
         new_node = Node(nextx, nexty, node.orientation)
-        G.add_edge(node, new_node)
         if new_node in visited:
-            break
+            return True
         visited.add(new_node)
         node = new_node
-    return G
 
 
-def search_loops(data: NDArray[np.bool], node_start: Node):
+def search_loops(data: NDArray[np.bool], node_start: Node) -> int:
     """Search for loops when adding one obstacle to the map."""
     pos = walk_normal_path(data, node_start.x, node_start.y, node_start.orientation)
     pos.remove((node_start.x, node_start.y))
-    loops = dict()
+    n_loops = 0
     for k, (x, y) in enumerate(pos):
-        print(f"Iteration {k} for position {(x, y)}")
-        data_ = data.copy()
-        data_[x, y] = True
-        G = walk_path(data_, node_start)
-        cycles = list(nx.simple_cycles(G))
-        if cycles:
-            loops[(x, y)] = cycles
-    return loops
+        print(f"Iteration {k + 1} / {len(pos)} for position {(x, y)}.")
+        data[x, y] = True
+        loop = walk_path(data, node_start)
+        data[x, y] = False
+        n_loops += loop
+    return n_loops
 
 
-loops = search_loops(data, Node(x, y, orientation))
-print(f"The number of loops is {len(loops)}.")
+n_loops = search_loops(data, Node(x, y, orientation))
+print(f"The number of loops is {n_loops}.")
