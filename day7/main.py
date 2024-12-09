@@ -40,14 +40,14 @@ def is_valid(equation: tuple[int, list[int]]) -> bool:
     result, numbers = equation
     if len(numbers) == 1:
         return result == numbers[0]
-    for ops in product(["+", "*", "|"], repeat=len(numbers) - 1):
+    for ops in product(["+", "*", "||"], repeat=len(numbers) - 1):
         value = numbers[0]
         for op, num in zip(ops, numbers[1:]):
             if op == "+":
                 value += num
             elif op == "*":
                 value *= num
-            elif op == "|":
+            elif op == "||":
                 value = int(str(value) + str(num))
         if value == result:
             return True
