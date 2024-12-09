@@ -11,7 +11,7 @@ with open(fname) as fid:
 # %% part 1
 def get_multiplication_result(data: str) -> int:
     """Get the multiplication value after parsing the corrupted memory."""
-    pattern = re.compile(r"mul\(\d+,\d+\)")
+    pattern = re.compile(r"mul\(\d{1,3},\d{1,3}\)")
     total = 0
     for elt in re.findall(pattern, data):
         a, b = map(int, re.findall(r"\d+", elt))
@@ -26,7 +26,7 @@ print(f"The total multiplication result is {total}.")
 # %% part 2
 def get_multiplication_result_with_conditionals(data: str) -> int:
     """Get the multiplication value after parsing the corrupted memory."""
-    pattern = re.compile(r"(mul\(\d+,\d+\))|(do\(\))|(don't\(\))")
+    pattern = re.compile(r"(mul\(\d{1,3},\d{1,3}\))|(do\(\))|(don't\(\))")
     total = 0
     enabled = True
     for elt in re.findall(pattern, data):
