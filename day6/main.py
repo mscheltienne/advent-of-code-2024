@@ -83,7 +83,7 @@ class Node:
 
     # another representation of the guard position and orientation could be his position
     # on the 2D complex plane. Then, a change of orientation by 90° to the right
-    # corresponds to a rotation (multiplication) by the complex number by 1j.
+    # corresponds to a rotation (multiplication) by the complex number 1j.
 
     x: int
     y: int
