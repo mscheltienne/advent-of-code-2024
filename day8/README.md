@@ -138,4 +138,4 @@ Calculate the impact of the signal using this updated model. How many unique loc
 ## Results
 
 * Part 1: `409`
-* Part 2:
+* Part 2: `1308`

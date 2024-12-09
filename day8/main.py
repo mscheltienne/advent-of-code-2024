@@ -72,3 +72,35 @@ def find_antinodes_for_all_frequencies(data: NDArray[np.int8]) -> list[tuple[int
 
 total = len(find_antinodes_for_all_frequencies(data))
 print(f"The total number of antinodes is {total}.")
+
+
+# %% part 2
+def find_antinodes(  # noqa: F811
+    data: NDArray[np.int8], antenna1: NDArray[np.int8], antenna2: NDArray[np.int8]
+) -> list[tuple[int, int]]:
+    """Find the antinodes of a given pair of antennas, including harmonics."""
+    x1, y1 = antenna1
+    x2, y2 = antenna2
+    # compute the vector from antenna1 to antenna2
+    vector = np.array([x2 - x1, y2 - y1], dtype=np.int8)  # (dx, dy)
+    # compute the position of the antinodes
+    antinodes = [tuple(antenna1), tuple(antenna2)]
+    pos = antenna1
+    while True:  # antinodes for antenna1
+        antinode = pos - vector
+        if not in_bounds(data, *antinode):
+            break
+        antinodes.append(tuple(antinode))
+        pos = antinode
+    pos = antenna2
+    while True:  # antinodes for antenna2
+        antinode = pos + vector
+        if not in_bounds(data, *antinode):
+            break
+        antinodes.append(tuple(antinode))
+        pos = antinode
+    return antinodes
+
+
+total = len(find_antinodes_for_all_frequencies(data))
+print(f"The total number of antinodes is {total}.")
