@@ -151,7 +151,7 @@ Option two, put a stack of failed suit prototypes in the bottom right quadrant o
 ......#...
 ```
 
-Option three, put a create of chimney-squeeze prototype fabric next to the standing desk in the bottom right quadrant:
+Option three, put a crate of chimney-squeeze prototype fabric next to the standing desk in the bottom right quadrant:
 
 ```
 ....#.....
