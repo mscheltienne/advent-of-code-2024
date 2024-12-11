@@ -88,4 +88,4 @@ Start over, now compacting the amphipod's hard drive using this new method inste
 ## Results
 
 * Part 1: `6279058075753`
-* Part 2:
+* Part 2: `6301361958738`
