@@ -10,7 +10,7 @@ import numpy as np
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-fname: Path = Path(__file__).parent / "example.txt"
+fname: Path = Path(__file__).parent / "input.txt"
 char_to_num: dict[str, int] = dict()
 with open(fname) as fid:
     data: list[str] = [line.strip() for line in fid.readlines()]
@@ -22,6 +22,7 @@ for line in data:
     line = [char_to_num[char] for char in line]
     data_numerical.append(line)
 data: NDArray[np.int8] = np.array(data_numerical, dtype=np.int8)
+num_to_char: dict[int, str] = {v: k for k, v in char_to_num.items()}
 
 
 # %% part 1
@@ -58,38 +59,6 @@ print(f"The cost of the fence is {total}.")
 
 
 # %% part 2
-def count_sides(component: set[tuple[int, int]]) -> int:
-    """Count the number of cycles of the component."""
-    G_boundary = build_boundary_graph(component)
-    n_sides = 0
-    for boundary_cycle_nodes in nx.connected_components(G_boundary):
-        G_boundary_sub = G_boundary.subgraph(boundary_cycle_nodes)
-        n_sides += count_cycle_sides(G_boundary_sub)
-    return n_sides
-
-
-def count_cycle_sides(G_boundary: nx.Graph) -> int:
-    """Count the number of sides of the cycle."""
-    n_sides = 1
-    start = next(iter(G_boundary.nodes))
-    pos = start
-    prev_pos = None
-    while True:
-        neighbors = list(G_boundary[pos])
-        if prev_pos is None:
-            next_pos = neighbors[0]
-        else:
-            next_pos = neighbors[0] if neighbors[1] == prev_pos else neighbors[1]
-        if next_pos == start:
-            break
-        if prev_pos is not None and get_direction(prev_pos, pos) != get_direction(
-            pos, next_pos
-        ):
-            n_sides += 1
-        prev_pos, pos = pos, next_pos
-    return n_sides
-
-
 def build_boundary_graph(
     component: set[tuple[int, int]],
 ) -> nx.Graph:
@@ -116,6 +85,52 @@ def build_boundary_graph(
                 p2 = (x + 1, y + 1)
             G_boundary.add_edge(p1, p2)
     return G_boundary
+
+
+def count_sides(component: set[tuple[int, int]]) -> int:
+    """Count the number of cycles of the component."""
+    G_boundary = build_boundary_graph(component)
+    cycles = nx.cycle_basis(G_boundary)  # find all cycles within the component
+    n_sides = 0
+    for cycle in cycles:
+        G_boundary_sub = G_boundary.subgraph(cycle)
+        n_sides += count_cycle_sides(G_boundary_sub)
+    return n_sides
+
+
+def count_cycle_sides(G_boundary: nx.Graph) -> int:
+    """Count the number of sides of the cycle.
+
+    The graph G_boundary has exactly 1 cycle, i..e. each node has 2 edges.
+    """
+    start = next(iter(G_boundary.nodes))
+    n_sides = _init_n_sides(G_boundary, start)
+    pos = start
+    prev_pos = None
+    while True:
+        neighbors = list(G_boundary[pos])
+        assert len(neighbors) == 2  # sanity-check
+        if prev_pos is None:
+            next_pos = neighbors[0]
+        else:
+            next_pos = neighbors[0] if neighbors[1] == prev_pos else neighbors[1]
+        if prev_pos is not None and get_direction(prev_pos, pos) != get_direction(
+            pos, next_pos
+        ):
+            n_sides += 1
+        if next_pos == start:
+            break
+        prev_pos, pos = pos, next_pos
+    return n_sides
+
+
+def _init_n_sides(G_boundary: nx.Graph, pos: tuple[int, int]) -> int:
+    """Initialize n_sides to 0 if we start on a 'line', and 1 if in a 'corner'."""
+    neighbors = list(G_boundary[pos])
+    assert len(neighbors) == 2  # sanity-check
+    if get_direction(pos, neighbors[0]) == get_direction(pos, neighbors[1]):
+        return 0
+    return 1
 
 
 def get_direction(p1: tuple[int, int], p2: tuple[int, int]) -> str:

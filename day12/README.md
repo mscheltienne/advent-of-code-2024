@@ -161,4 +161,4 @@ What is the new total price of fencing all regions on your map?
 ## Results
 
 * Part 1: `1465112`
-* Part 2:
+* Part 2: `893790`
