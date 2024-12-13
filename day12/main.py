@@ -10,7 +10,7 @@ import numpy as np
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-fname: Path = Path(__file__).parent / "input.txt"
+fname: Path = Path(__file__).parent / "example.txt"
 char_to_num: dict[str, int] = dict()
 with open(fname) as fid:
     data: list[str] = [line.strip() for line in fid.readlines()]
@@ -54,5 +54,83 @@ def estimate_fence_cost(G: nx.Graph) -> int:
 
 G = build_graph()
 total = estimate_fence_cost(G)
+print(f"The cost of the fence is {total}.")
+
 
 # %% part 2
+def count_sides(component: set[tuple[int, int]]) -> int:
+    """Count the number of cycles of the component."""
+    G_boundary = build_boundary_graph(component)
+    n_sides = 0
+    for boundary_cycle_nodes in nx.connected_components(G_boundary):
+        G_boundary_sub = G_boundary.subgraph(boundary_cycle_nodes)
+        n_sides += count_cycle_sides(G_boundary_sub)
+    return n_sides
+
+
+def count_cycle_sides(G_boundary: nx.Graph) -> int:
+    """Count the number of sides of the cycle."""
+    n_sides = 1
+    start = next(iter(G_boundary.nodes))
+    pos = start
+    prev_pos = None
+    while True:
+        neighbors = list(G_boundary[pos])
+        if prev_pos is None:
+            next_pos = neighbors[0]
+        else:
+            next_pos = neighbors[0] if neighbors[1] == prev_pos else neighbors[1]
+        if next_pos == start:
+            break
+        if prev_pos is not None and get_direction(prev_pos, pos) != get_direction(
+            pos, next_pos
+        ):
+            n_sides += 1
+        prev_pos, pos = pos, next_pos
+    return n_sides
+
+
+def build_boundary_graph(
+    component: set[tuple[int, int]],
+) -> nx.Graph:
+    """Find the boundary edges of a component."""
+    G_boundary = nx.Graph()
+    for x, y in component:
+        for dx, dy in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
+            new_x, new_y = x + dx, y + dy
+            if in_bounds(data, new_x, new_y) and (new_x, new_y) in component:
+                continue  # the new point is within the same region
+            # this is a boundary edge between (x, y) and (new_x, new_y), let's add it in
+            # our grid-representation of the boundaries.
+            if dx == -1 and dy == 0:  # edge on the top of (x, y)
+                p1 = (x, y)
+                p2 = (x, y + 1)
+            elif dx == 1 and dy == 0:  # edge on the bottom of (x, y)
+                p1 = (x + 1, y)
+                p2 = (x + 1, y + 1)
+            elif dx == 0 and dy == -1:  # edge on the left of (x, y)
+                p1 = (x, y)
+                p2 = (x + 1, y)
+            elif dx == 0 and dy == 1:  # edge on the right of (x, y)
+                p1 = (x, y + 1)
+                p2 = (x + 1, y + 1)
+            G_boundary.add_edge(p1, p2)
+    return G_boundary
+
+
+def get_direction(p1: tuple[int, int], p2: tuple[int, int]) -> str:
+    """Get the direction from p1 to p2."""
+    if p1[0] == p2[0]:
+        return "horizontal"
+    elif p1[1] == p2[1]:
+        return "vertical"
+
+
+def estimate_fence_cost(G: nx.Graph) -> int:
+    """Estimate the cost of the fence."""
+    return sum(len(elt) * count_sides(elt) for elt in nx.connected_components(G))
+
+
+G = build_graph()
+total = estimate_fence_cost(G)
+print(f"The cost of the fence is {total}.")
