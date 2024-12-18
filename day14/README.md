@@ -156,4 +156,4 @@ What is the fewest number of seconds that must elapse for the robots to display 
 ## Results
 
 * Part 1: `225943500`
-* Part 2:
+* Part 2: `6377`
