@@ -159,7 +159,7 @@ def compute_variance(robots: list[Robot]) -> float:
 
 
 def find_xmas_tree(robots: list[Robot], n_iter: int) -> int:
-    """Find the position which minimizes the entropy of the robot-point-cloud."""
+    """Find the position which minimizes the variance of the robot-point-cloud."""
     pos = None
     min_var = None
     for k in range(n_iter):
