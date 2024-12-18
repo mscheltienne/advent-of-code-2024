@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -65,6 +66,15 @@ class AutomaticWarehouseSystem:
                     break
         else:
             raise RuntimeError("Invalid map position/value.")
+
+    def plot(self) -> None:
+        """Plot the warehouse map."""
+        f, ax = plt.subplots(1, 1, layout="constrained")
+        ax.imshow(self._map, cmap="viridis")
+        ax.scatter(*self._robot, color="red")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.show()
 
 
 def simulate(warehouse: AutomaticWarehouseSystem, instructions: str) -> None:
