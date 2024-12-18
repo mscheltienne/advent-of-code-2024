@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
+from matplotlib import pyplot as plt
+
 fname: Path = Path(__file__).parent / "input.txt"
 with open(fname) as fid:
     lines: list[str] = [elt.strip().split(" ") for elt in fid.readlines()]
@@ -50,6 +53,26 @@ class Robot:
         else:
             return None
 
+    @property
+    def x(self) -> int:
+        """The X-position of the robot."""
+        return self._x
+
+    @property
+    def y(self) -> int:
+        """The Y-position of the robot."""
+        return self._y
+
+    @property
+    def vx(self) -> int:
+        """The X-velocity of the robot."""
+        return self._vx
+
+    @property
+    def vy(self) -> int:
+        """The Y-velocity of the robot."""
+        return self._vy
+
 
 def list_robots(lines: list[str]) -> list[Robot]:
     """Parse the input in a list of robots."""
@@ -69,7 +92,7 @@ def move_robots(robots: list[Robot], n: int) -> None:
             robot.move()
 
 
-def compute_safety_factor(robots: list[Robot]):
+def compute_safety_factor(robots: list[Robot]) -> int:
     """Count the robots in the 4 quadrant."""
     quadrants = [0, 0, 0, 0]
     for robot in robots:
@@ -83,3 +106,74 @@ robots = list_robots(lines)
 move_robots(robots, 100)
 safety_factor = compute_safety_factor(robots)
 print(f"The safety factor is {safety_factor}.")
+
+
+# %% part 2
+def plot_map(robots: list[Robot], t_start: int = 0) -> None:
+    """Plot an interactive map of the robot positions."""
+    if plt.get_backend() != "QtAgg":
+        plt.switch_backend("QtAgg")
+    if not plt.isinteractive():
+        plt.ion()
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    ax.set_xlim(0, MAP_SIZE[0])
+    ax.set_ylim(0, MAP_SIZE[1])
+    ax.set_aspect("equal")
+    ax.set_title("Press Space to step forward 1 second")
+
+    for _ in range(t_start):
+        for r in robots:
+            r.move()
+
+    scatter = ax.scatter([r.x for r in robots], [r.y for r in robots], c="r", s=10)
+    time_step = t_start
+
+    def update_plot() -> None:
+        """Udpdate the positions on the plot."""
+        scatter.set_offsets([[r.x, r.y] for r in robots])
+        ax.set_title(f"Time: {time_step} seconds (press Space to step)")
+        fig.canvas.draw_idle()
+
+    def on_key(event) -> None:
+        nonlocal time_step
+        # Step forward one second if user presses space
+        if event.key == " ":
+            time_step += 1
+            for r in robots:
+                r.move()
+            update_plot()
+
+    # Connect the event
+    fig.canvas.mpl_connect("key_press_event", on_key)
+    update_plot()
+    plt.show(block=True)
+
+
+def compute_variance(robots: list[Robot]) -> float:
+    """Compute the X/Y variance of the robot distribution."""
+    xs = np.array([r.x for r in robots])
+    ys = np.array([r.y for r in robots])
+    xvar = np.var(xs)
+    yvar = np.var(ys)
+    return xvar + yvar
+
+
+def find_xmas_tree(robots: list[Robot], n_iter: int) -> int:
+    """Find the position which minimizes the entropy of the robot-point-cloud."""
+    pos = None
+    min_var = None
+    for k in range(n_iter):
+        var = compute_variance(robots)
+        if min_var is None or var < min_var:
+            min_var = var
+            pos = k
+        for robot in robots:
+            robot.move()
+    return pos
+
+
+robots = list_robots(lines)
+pos = find_xmas_tree(robots, 10000)
+robots = list_robots(lines)
+print(f"The timestamp forming a X-mas tree is {pos}.")
+plot_map(robots, pos)
