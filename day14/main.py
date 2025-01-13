@@ -87,7 +87,7 @@ def list_robots(lines: list[str]) -> list[Robot]:
 def move_robots(robots: list[Robot], n: int) -> None:
     """Move the robots during n seconds."""
     for k, robot in enumerate(robots):
-        print(f"Moving robot {k+1} / {len(robots)}.")
+        print(f"Moving robot {k + 1} / {len(robots)}.")
         for _ in range(n):
             robot.move()
 
