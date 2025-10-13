@@ -45,8 +45,8 @@ def in_bounds(data: NDArray[np.int8], x: int, y: int) -> bool:
 
 def measure_score(data: NDArray[np.int8]) -> int:
     """Measure the total score of the trails on the map."""
-    trailheads = list(zip(*np.where(data == 0)))
-    trailends = list(zip(*np.where(data == 9)))
+    trailheads = list(zip(*np.where(data == 0), strict=False))
+    trailends = list(zip(*np.where(data == 9), strict=False))
     G = build_graph(data, trailheads)
     total_score = 0
     for trailhead in trailheads:
@@ -65,8 +65,8 @@ print(f"The total score of the trailheads is: {total}.")
 # %% part 2
 def measure_rating(data: NDArray[np.int8]) -> int:
     """Measure the total rating of the trails on the map."""
-    trailheads = list(zip(*np.where(data == 0)))
-    trailends = list(zip(*np.where(data == 9)))
+    trailheads = list(zip(*np.where(data == 0), strict=False))
+    trailends = list(zip(*np.where(data == 9), strict=False))
     G = build_graph(data, trailheads)
     total_rating = 0
     for trailhead in trailheads:

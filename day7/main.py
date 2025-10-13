@@ -20,7 +20,7 @@ def is_valid(equation: tuple[int, list[int]]) -> bool:
         return result == numbers[0]
     for ops in product(["+", "*"], repeat=len(numbers) - 1):
         value = numbers[0]
-        for op, num in zip(ops, numbers[1:]):
+        for op, num in zip(ops, numbers[1:], strict=False):
             if op == "+":
                 value += num
             elif op == "*":
@@ -42,7 +42,7 @@ def is_valid(equation: tuple[int, list[int]]) -> bool:
         return result == numbers[0]
     for ops in product(["+", "*", "||"], repeat=len(numbers) - 1):
         value = numbers[0]
-        for op, num in zip(ops, numbers[1:]):
+        for op, num in zip(ops, numbers[1:], strict=False):
             if op == "+":
                 value += num
             elif op == "*":

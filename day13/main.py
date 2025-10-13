@@ -13,7 +13,9 @@ if TYPE_CHECKING:
 fname: Path = Path(__file__).parent / "input.txt"
 with open(fname) as fid:
     lines: list[str] = fid.readlines()
-lines: list[tuple[str, str, str]] = list(zip(lines[::4], lines[1::4], lines[2::4]))
+lines: list[tuple[str, str, str]] = list(
+    zip(lines[::4], lines[1::4], lines[2::4], strict=False)
+)
 data: list[dict[str, NDArray[np.int64]]] = []
 pattern = re.compile(r"(\d+)")
 for line in lines:
